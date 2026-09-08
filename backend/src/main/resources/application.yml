@@ -1,0 +1,83 @@
+spring:
+  application:
+    name: soundmap
+
+  # 로컬 개발용 기본값. backend/db/init.sql 로 계정을 만든 뒤 그대로 붙는다.
+  # 배포 시에는 DB_USERNAME / DB_PASSWORD 환경변수로 덮어쓴다.
+  datasource:
+    url: jdbc:mysql://localhost:3306/music?serverTimezone=Asia/Seoul&characterEncoding=UTF-8&rewriteBatchedStatements=true
+    username: ${DB_USERNAME:soundmap}
+    password: ${DB_PASSWORD:soundmap_local_dev}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      # 개발 중에는 update, 스키마가 확정되면 validate 로 바꾸세요.
+      ddl-auto: ${JPA_DDL_AUTO:update}
+    properties:
+      hibernate:
+        format_sql: true
+        default_batch_fetch_size: 100
+    open-in-view: false
+
+
+server:
+  port: 8080
+
+soundmap:
+  jwt:
+    # 운영에서는 반드시 환경변수로 덮어쓰세요. HS256 이라 최소 32바이트가 필요합니다.
+    secret: ${JWT_SECRET:soundmap-local-dev-secret-key-change-me-please-32bytes+}
+    # 액세스 토큰 유효시간 (분)
+    expiration-minutes: ${JWT_EXPIRATION_MINUTES:1440}
+  location:
+    # 격자 한 칸의 크기(도). 0.001도 = 위도 약 111m, 경도 약 90m(한국 기준).
+    # 원본 GPS 는 저장하지 않고 이 격자로 스냅한 값만 DB 에 넣는다.
+    grid-size-degrees: ${LOCATION_GRID_SIZE:0.001}
+    # 주변 조회 기본/최대 반경(m)
+    default-radius-meters: 2000
+    # 화면의 "전국" 선택지가 쓰는 값. 한반도 대각선(약 500km)을 넉넉히 덮어서
+    # 사실상 거리 제한이 없다. 다른 지역에 있는 사람도 거리순으로 보인다.
+    #
+    # 사각형으로 후보를 먼저 좁히는 최적화가 이 반경에서는 효과가 없다.
+    # 사용자가 수천 명 규모로 늘면 전국 조회에 상한(개수 제한)을 두어야 한다.
+    max-radius-meters: 1000000
+    # 이 시간보다 오래된 위치는 지도에 그리지 않는다
+    pin-ttl: 24h
+
+  itunes:
+    base-url: https://itunes.apple.com
+    # 곡을 찾는 스토어프론트. KR 은 /search 로 곡을 주지 않아서
+    # (한국은 iTunes 음악 판매 지역이 아니다) 어떤 검색어든 resultCount 가 0 이다.
+    # US 는 한글 검색어도 그대로 받고 미리듣기 주소도 여기에만 있다.
+    country: ${ITUNES_COUNTRY:US}
+    # 곡 제목·가수 이름을 이 스토어프론트 표기로 바꿔 끼운다.
+    # KR 은 /search 로는 곡을 안 주지만 /lookup 으로는 한국어 표기를 준다.
+    # 비워 두면 US 표기("Through the Night", "IU")를 그대로 쓴다.
+    localize-country: ${ITUNES_LOCALIZE_COUNTRY:KR}
+    limit: 20
+    timeout: 5s
+
+  # 더미 데이터. 배포 환경에서는 SEED_ENABLED=false 로 끈다.
+  seed:
+    enabled: ${SEED_ENABLED:true}
+    user-count: 40
+    # 한동대학교 부근
+    center-lat: 36.1034
+    center-lon: 129.3897
+    radius-meters: 1500
+    password: dummy_password
+
+  cors:
+    # 5173 = vite dev, 4173 = vite preview(배포 구성 재현용).
+    # 배포에서는 CORS_ALLOWED_ORIGINS 에 실제 도메인을 넣어야 한다. nginx 뒤에 있어도
+    # 브라우저가 Origin 헤더를 보내고 백엔드는 그것을 검사하므로, 값이 틀리면
+    # 모든 요청이 "Invalid CORS request" 로 막힌다.
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:5173,http://127.0.0.1:5173,http://localhost:4173,http://127.0.0.1:4173}
+
+logging:
+  level:
+    # 배포에서는 반드시 꺼야 한다. 요청마다 SQL 전문이 쌓여서 작은 인스턴스의
+    # 디스크를 금방 채운다. LOG_SQL=info 로 덮어쓴다.
+    org.hibernate.SQL: ${LOG_SQL:debug}
+    org.hibernate.orm.jdbc.bind: ${LOG_SQL_PARAMS:trace}

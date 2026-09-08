@@ -1,0 +1,46 @@
+# SoundMap 백엔드 systemd 유닛
+#
+# 설치:
+#   sudo cp deploy/soundmap.service /etc/systemd/system/soundmap.service
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now soundmap
+#
+# 로그 보기:
+#   sudo journalctl -u soundmap -f
+
+[Unit]
+Description=SoundMap backend
+# DB 가 뜨기 전에 시작하면 커넥션 풀 초기화에서 실패한다.
+After=network-online.target mysql.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=soundmap
+Group=soundmap
+WorkingDirectory=/opt/soundmap
+
+# 비밀값은 이 파일에 둔다. 저장소에 커밋하지 않는다.
+#   sudo install -m 600 -o soundmap -g soundmap /dev/null /etc/soundmap/soundmap.env
+EnvironmentFile=/etc/soundmap/soundmap.env
+
+# 1~2GB 인스턴스 기준. MySQL 과 nginx 가 같은 장비에 있으므로 힙을 넉넉히 잡으면
+# 스왑이 돌기 시작해 전체가 느려진다.
+ExecStart=/usr/bin/java -Xms256m -Xmx640m -jar /opt/soundmap/soundmap.jar
+
+# 죽으면 다시 띄운다. 다만 기동 실패가 반복되면 무한 재시작이 되므로 간격을 둔다.
+Restart=on-failure
+RestartSec=10
+
+SuccessExitStatus=143
+StandardOutput=journal
+StandardError=journal
+
+# 최소 권한
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=true
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,25 @@
+<!--
+  뷰박스는 그림에 딱 맞춰 잘라 두었다. 1024 정사각형 그대로 두면 위아래 여백이
+  25% 를 먹어서, 16px 파비콘이나 헤더에서 마크가 실제보다 작게 보인다.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="214.6 234 578 578" role="img" aria-label="SoundMap">
+  <defs>
+    <linearGradient id="soundmap-mark" x1="512" y1="250" x2="512" y2="800" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#22a9ff" />
+      <stop offset="1" stop-color="#2160f5" />
+    </linearGradient>
+  </defs>
+
+  <g fill="none" stroke="url(#soundmap-mark)" stroke-linejoin="round">
+    <!-- 지도 핀. 왼쪽 아래를 끊어 음표가 들어갈 자리를 낸다. -->
+    <path stroke-width="48" stroke-linecap="round"
+          d="M403.7 560.8 L373.2 501.2 A156 156 0 1 1 650.8 501.2 L512 772" />
+    <!-- 음표 기둥. 위쪽은 깃발이 붙는 자리라 둥글게 처리하지 않는다. -->
+    <path stroke-width="32" stroke-linecap="butt" d="M470 336 L470 648 L512 776" />
+  </g>
+
+  <g fill="url(#soundmap-mark)">
+    <path d="M470 332 C578 392, 612 486, 552 616 C582 494, 532 428, 470 406 Z" />
+    <ellipse cx="396" cy="672" rx="82" ry="68" transform="rotate(-18 396 672)" />
+  </g>
+</svg>

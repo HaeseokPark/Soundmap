@@ -1,0 +1,34 @@
+# 편집기가 파일을 저장할 때 지킬 규칙.
+#
+# 이 저장소는 줄바꿈을 LF 로 통일한다. 개발은 Windows 에서 하지만 배포 대상은
+# 리눅스이고, 셸 스크립트(deploy/*, scripts/*, gradlew)는 CRLF 로 저장되면
+# 리눅스에서 실행 자체가 안 된다.
+#
+# 예전에 CRLF 와 LF 가 섞여서, 편집 도구가 찾는 문자열을 못 찾아 수정이
+# 조용히 실패하는 일이 있었다. (2026-09-08 정리)
+#
+# IntelliJ·VS Code 는 이 파일을 별도 설정 없이 읽는다.
+
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+[*.{java,gradle}]
+indent_style = space
+indent_size = 4
+
+[*.{js,jsx,css,json,yml,html,webmanifest}]
+indent_style = space
+indent_size = 2
+
+[*.md]
+# 마크다운은 줄 끝 공백 두 개가 줄바꿈이라 지우면 안 된다.
+trim_trailing_whitespace = false
+
+# 윈도우 배치 파일은 CRLF 여야 한다.
+[*.bat]
+end_of_line = crlf

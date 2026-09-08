@@ -1,0 +1,27 @@
+# 저장소 안의 줄바꿈은 LF 로 고정한다.
+#
+# Windows 에서 개발하지만 배포 대상은 리눅스다. 셸 스크립트가 CRLF 로 체크아웃되면
+# 리눅스에서 실행 자체가 안 되고, 한 파일 안에 CRLF 와 LF 가 섞이면 편집 도구가
+# 찾는 문자열을 못 찾아 수정이 조용히 실패한다. (2026-09-08 에 실제로 겪음)
+#
+# eol=lf 는 "작업 디렉터리에도 LF 로 풀어라"는 뜻이라, git 의 autocrlf 설정과
+# 무관하게 모든 사람이 같은 줄바꿈을 갖게 된다.
+
+* text=auto eol=lf
+
+# 윈도우 배치 파일만 예외. CRLF 가 아니면 동작하지 않는 경우가 있다.
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# 바이너리는 손대지 않는다.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.pdf binary
+*.jar binary
+*.gz binary
+*.zip binary
+*.woff binary
+*.woff2 binary

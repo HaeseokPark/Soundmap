@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#ffffff" />
+    <link rel="icon" type="image/svg+xml" href="/logo.svg" />
+    <!-- SVG 파비콘을 못 읽는 브라우저용 대체본. -->
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+    <!-- iOS 홈 화면 아이콘. SVG 를 무시하므로 PNG 여야 한다. -->
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+
+    <!-- 홈 화면에 추가하면 주소창 없이 앱처럼 열린다. -->
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="SoundMap" />
+
+    <!--
+      카카오톡·슬랙 등의 링크 미리보기.
+      og:image 는 상대 경로를 읽지 못하는 곳이 많아 절대 주소로 적는다.
+    -->
+    <meta name="description" content="같은 음악을 듣는 사람이 근처에 있습니다." />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="SoundMap" />
+    <meta property="og:title" content="SoundMap" />
+    <meta property="og:description" content="같은 음악을 듣는 사람이 근처에 있습니다." />
+    <meta property="og:url" content="https://soundmap.duckdns.org/" />
+    <meta property="og:image" content="https://soundmap.duckdns.org/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <!-- 본문 서체. 없으면 기기 기본 서체로 떨어져도 화면은 그대로 뜬다. -->
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css"
+    />
+    <title>SoundMap</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>

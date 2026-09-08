@@ -1,0 +1,2134 @@
+/*
+ * SoundMap 디자인 시스템.
+ *
+ * 밝은 배경 · 파란 강조색 · 큰 라운드 · 굵은 제목. 화면 대부분이 목록과 시트라서
+ * 테두리로 칸을 나누는 대신 흰 카드를 회색 바닥 위에 얹어 구분한다.
+ *
+ * 색은 전부 이 토큰을 거친다. 값을 직접 쓴 곳은 그림자와 반투명 오버레이뿐이다.
+ */
+
+:root {
+  /* 바탕 */
+  --bg: #f2f4f6;
+  --surface: #ffffff;
+  --surface-sub: #f9fafb;
+  --border: #e5e8eb;
+  --border-light: #f2f4f6;
+
+  /* 글자. 회색 단계가 촘촘해야 위계가 산다. */
+  --text: #191f28;
+  --text-body: #333d4b;
+  --text-sub: #6b7684;
+  --text-dim: #8b95a1;
+  --text-disabled: #b0b8c1;
+
+  /* 강조 */
+  --primary: #3182f6;
+  --primary-dark: #1b64da;
+  --primary-tint: #e8f3ff;
+  /* albumMarker.js 가 이 이름을 쓴다. */
+  --accent: var(--primary);
+
+  --danger: #f04452;
+  --danger-tint: #ffeced;
+
+  --radius-sm: 10px;
+  --radius: 14px;
+  --radius-lg: 20px;
+  --radius-xl: 24px;
+
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06);
+  --shadow: 0 4px 16px rgba(0, 0, 0, 0.07);
+  --shadow-dock: 0 -2px 20px rgba(0, 0, 0, 0.06);
+
+  /* 시작이 빠르고 끝이 부드럽다. 눌렀을 때 반응이 붙어 오는 느낌을 준다. */
+  --ease: cubic-bezier(0.32, 0.72, 0, 1);
+
+  /* 모바일에서 쓰는 서비스라 넓은 화면에서도 이 폭으로 가운데 고정한다. */
+  --app-width: 480px;
+
+  font-family: "Pretendard Variable", "Pretendard", -apple-system,
+    BlinkMacSystemFont, "Segoe UI", "Noto Sans KR", sans-serif;
+  color-scheme: light;
+  -webkit-text-size-adjust: 100%;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 15px;
+  line-height: 1.5;
+  letter-spacing: -0.3px;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3 {
+  letter-spacing: -0.6px;
+}
+
+a {
+  color: var(--primary);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+/* 키보드로 옮겨 다닐 때만 링을 보여준다. 마우스 클릭에는 나오지 않는다. */
+:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* ---------- 앱 셸 ---------- */
+
+/*
+ * 네 페이지 모두 위(헤더) · 가운데(스크롤) · 아래(입력)로 나뉜다.
+ * 높이를 100dvh 로 잡아야 모바일 브라우저 주소창이 접힐 때 바닥이 잘리지 않는다.
+ */
+.map-page,
+.chat-page,
+.profile-page,
+.onboarding {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  max-width: var(--app-width);
+  margin: 0 auto;
+  background: var(--bg);
+  overflow: hidden;
+}
+
+@media (min-width: 520px) {
+  .map-page,
+  .chat-page,
+  .profile-page,
+  .onboarding {
+    box-shadow: 0 0 0 1px var(--border);
+  }
+}
+
+/* ---------- 버튼 ---------- */
+
+button {
+  font-family: inherit;
+  letter-spacing: -0.3px;
+  border: 0;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+  transition:
+    background 0.15s var(--ease),
+    color 0.15s var(--ease),
+    transform 0.1s var(--ease);
+}
+
+button:disabled {
+  cursor: not-allowed;
+}
+
+/* 누르는 동안 살짝 들어간다. 터치에서 눌린 것이 바로 보인다. */
+button:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.primary,
+.secondary,
+.danger {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 52px;
+  padding: 0 20px;
+  border-radius: var(--radius);
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.primary {
+  background: var(--primary);
+  color: #fff;
+}
+
+.primary:hover:not(:disabled) {
+  background: var(--primary-dark);
+}
+
+.primary:disabled {
+  background: var(--border);
+  color: var(--text-disabled);
+}
+
+.secondary {
+  background: var(--border-light);
+  color: var(--text-body);
+}
+
+.secondary:hover:not(:disabled) {
+  background: var(--border);
+}
+
+.danger {
+  background: var(--danger);
+  color: #fff;
+}
+
+.danger:hover:not(:disabled) {
+  filter: brightness(0.94);
+}
+
+/* 글자만 있는 보조 동작. 헤더와 목록 끝에 쓴다. */
+.link-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 8px;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--text-sub);
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.link-button:hover {
+  background: var(--border-light);
+  color: var(--text-body);
+}
+
+.link-button--danger {
+  color: var(--danger);
+}
+
+.link-button--danger:hover {
+  background: var(--danger-tint);
+  color: var(--danger);
+}
+
+/* ---------- 입력 ---------- */
+
+/*
+ * 테두리 대신 옅은 회색으로 칠한다. 화면에 선이 줄어 목록이 조용해진다.
+ * 초점이 가면 흰 바탕 + 파란 테두리로 바뀌어 지금 쓰는 칸이 분명해진다.
+ */
+.field input,
+.search-input,
+.composer__row input {
+  width: 100%;
+  min-height: 52px;
+  padding: 14px 16px;
+  border: 1.5px solid transparent;
+  border-radius: var(--radius);
+  background: var(--border-light);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 500;
+  letter-spacing: -0.3px;
+  outline: none;
+  transition:
+    background 0.15s var(--ease),
+    border-color 0.15s var(--ease);
+}
+
+.field input::placeholder,
+.search-input::placeholder,
+.composer__row input::placeholder {
+  color: var(--text-disabled);
+  font-weight: 500;
+}
+
+.field input:focus,
+.search-input:focus,
+.composer__row input:focus {
+  background: var(--surface);
+  border-color: var(--primary);
+}
+
+textarea.search-input {
+  min-height: 0;
+  line-height: 1.6;
+  resize: none;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.field > span {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-sub);
+  padding-left: 2px;
+}
+
+.field-error {
+  color: var(--danger);
+  font-size: 13px;
+  font-weight: 500;
+  font-style: normal;
+  padding-left: 2px;
+}
+
+/* ---------- 안내 문구 ---------- */
+
+.error {
+  margin: 0;
+  padding: 14px 16px;
+  border-radius: var(--radius);
+  background: var(--danger-tint);
+  color: var(--danger);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.hint {
+  margin: 0;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-dim);
+  line-height: 1.6;
+}
+
+.info {
+  display: grid;
+  grid-template-columns: 88px 1fr;
+  gap: 10px 12px;
+  margin: 0;
+  font-size: 15px;
+}
+
+.info dt {
+  color: var(--text-dim);
+  font-weight: 500;
+}
+
+.info dd {
+  margin: 0;
+  font-weight: 600;
+}
+
+/* ---------- 로그인 · 회원가입 ---------- */
+
+/*
+ * 여기만 회색 바닥을 쓰지 않는다. 첫 화면은 카드 하나뿐이라
+ * 흰 배경에 글자와 입력칸만 놓는 편이 더 넓어 보인다.
+ */
+.screen-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100dvh;
+  padding: 24px;
+  background: var(--surface);
+  color: var(--text-dim);
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.card {
+  width: 100%;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  color: var(--text);
+}
+
+.logo {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: -1px;
+}
+
+.subtitle {
+  margin: -10px 0 12px;
+  color: var(--text-sub);
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.card .primary {
+  margin-top: 8px;
+  min-height: 56px;
+}
+
+.card .hint {
+  color: var(--text-sub);
+}
+
+/* ---------- 헤더 ---------- */
+
+.map-header {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex: none;
+  height: 56px;
+  padding: 0 8px 0 16px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border-light);
+  z-index: 1000;
+}
+
+.map-header__logo {
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: -0.7px;
+  color: var(--text);
+  white-space: nowrap;
+}
+
+/* 반경·필터 조건에 걸린 사람 수. 제목 옆에 붙는 상태 값이라 알약으로 둔다. */
+.map-header__count {
+  margin-left: 8px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--primary-tint);
+  color: var(--primary-dark);
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.map-header__user {
+  margin-left: auto;
+  padding: 6px 8px;
+  color: var(--text-body);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+/* ---------- 지도 ---------- */
+
+.map-body {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+}
+
+.map-canvas,
+.map-body .map-canvas {
+  width: 100%;
+  height: 100%;
+  background: var(--bg);
+}
+
+/* 키가 없거나 도메인 등록이 안 돼 지도를 못 띄웠을 때. 빈 상자 대신 이유를 보여준다. */
+.map-canvas--error {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+/* ---------- 앨범 커버 마커 ---------- */
+
+/* --marker-size 와 --marker-ring 은 albumMarker.js 가 넣어 준다. */
+.album-marker {
+  width: var(--marker-size);
+  height: var(--marker-size);
+  border-radius: 50%;
+  overflow: hidden;
+  background: var(--surface);
+  border: 3px solid var(--marker-ring);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.15s var(--ease);
+}
+
+.album-marker:hover {
+  transform: scale(1.06);
+}
+
+.album-marker img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.album-marker__empty {
+  color: var(--text-disabled);
+  font-size: 20px;
+}
+
+/* ---------- 지도 위 떠 있는 조작부 ---------- */
+
+/*
+ * 지도를 덮는 층이라 컨테이너는 클릭을 통과시키고, 실제 버튼만 받는다.
+ * 안 그러면 빈 여백에서 지도를 끌 수 없다.
+ */
+.map-overlay {
+  position: absolute;
+  inset: 12px 12px auto 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  pointer-events: none;
+  z-index: 500;
+}
+
+.map-overlay > * {
+  pointer-events: auto;
+}
+
+.view-toggle {
+  display: flex;
+  gap: 2px;
+  padding: 4px;
+  border-radius: var(--radius);
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(12px);
+  box-shadow: var(--shadow);
+}
+
+.view-toggle button {
+  padding: 7px 14px;
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-dim);
+}
+
+.view-toggle .view-toggle__on {
+  background: var(--primary);
+  color: #fff;
+}
+
+.radius-picker {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  border-radius: var(--radius);
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(12px);
+  box-shadow: var(--shadow);
+}
+
+/*
+ * 좁은 화면에서 다섯 개가 한 줄에 안 들어간다. 줄바꿈하면 지도를 두 줄로
+ * 가리므로 한 줄을 유지하고 옆으로 밀어 보게 한다.
+ */
+.map-overlay .radius-picker {
+  max-width: 100%;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.map-overlay .radius-picker::-webkit-scrollbar {
+  display: none;
+}
+
+.radius-chip {
+  white-space: nowrap;
+}
+
+.radius-chip {
+  padding: 7px 11px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-dim);
+}
+
+.radius-chip:hover {
+  color: var(--text-body);
+}
+
+.radius-chip--active,
+.radius-chip--active:hover {
+  background: var(--primary);
+  color: #fff;
+}
+
+/* ---------- 취향 필터 바 ---------- */
+
+.filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: none;
+  padding: 10px 16px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border-light);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.filter-bar::-webkit-scrollbar {
+  display: none;
+}
+
+.filter-bar__open {
+  flex: none;
+  padding: 9px 14px;
+  border-radius: 999px;
+  background: var(--border-light);
+  color: var(--text-body);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.filter-bar__open:hover {
+  background: var(--border);
+}
+
+.filter-bar__chips {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.filter-bar__chips .chip {
+  padding: 8px 12px;
+  font-size: 13px;
+}
+
+/* ---------- 하단 독 ---------- */
+
+/*
+ * 지도 위에 얹지 않고 아래에 붙인다. 지도를 가리는 면적이 늘어나도
+ * "지금 듣는 곡"과 두 개의 주 동작은 항상 같은 자리에 있어야 찾기 쉽다.
+ */
+.map-dock {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px 16px calc(16px + env(safe-area-inset-bottom));
+  background: var(--surface);
+  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+  box-shadow: var(--shadow-dock);
+  z-index: 600;
+}
+
+.map-dock__status {
+  margin: 0;
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  background: var(--primary-tint);
+  color: var(--primary-dark);
+  font-size: 13px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.map-dock__actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.map-dock .hint {
+  padding: 6px 0;
+}
+
+.now-playing {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.now-playing__art {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  object-fit: cover;
+  flex: none;
+  background: var(--border-light);
+}
+
+.now-playing__text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.now-playing__text strong,
+.track-row__text strong {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.now-playing__text em,
+.track-row__text em {
+  font-size: 13px;
+  font-weight: 500;
+  font-style: normal;
+  color: var(--text-dim);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ---------- 바텀 시트 ---------- */
+
+.sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.45);
+  animation: backdrop-in 0.2s var(--ease);
+}
+
+.sheet {
+  width: 100%;
+  max-width: var(--app-width);
+  max-height: 86dvh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 8px 20px calc(24px + env(safe-area-inset-bottom));
+  background: var(--surface);
+  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+  animation: sheet-up 0.28s var(--ease);
+}
+
+.sheet__handle {
+  width: 40px;
+  height: 4px;
+  margin: 4px auto;
+  border-radius: 999px;
+  background: var(--border);
+  flex: none;
+}
+
+.sheet__title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--text);
+  line-height: 1.35;
+}
+
+.sheet__actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+@keyframes sheet-up {
+  from {
+    transform: translateY(100%);
+  }
+}
+
+@keyframes backdrop-in {
+  from {
+    opacity: 0;
+  }
+}
+
+/* ---------- 곡 검색 결과 ---------- */
+
+.track-list {
+  list-style: none;
+  /* 시트 좌우 여백을 넘겨 눌리는 면을 넓힌다. */
+  margin: 0 -8px;
+  padding: 0;
+  max-height: 52dvh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+/* 행 전체가 버튼이고 미리듣기는 그 옆에 형제로 둔다. 버튼 중첩을 피한다. */
+.track-row-wrap {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.track-row-wrap .track-row {
+  flex: 1;
+  min-width: 0;
+}
+
+.track-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 10px 8px;
+  border-radius: 12px;
+  text-align: left;
+  background: none;
+}
+
+.track-row:hover {
+  background: var(--surface-sub);
+}
+
+.track-row__art {
+  width: 52px;
+  height: 52px;
+  border-radius: 10px;
+  object-fit: cover;
+  flex: none;
+  background: var(--border-light);
+}
+
+.track-row__art--empty,
+.pin-row__art--empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-disabled);
+  font-size: 20px;
+}
+
+.track-row__text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+/* ---------- 30초 미리듣기 ---------- */
+
+.preview-button {
+  flex: none;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--border-light);
+  color: var(--text-sub);
+  font-size: 11px;
+  line-height: 1;
+  /* 삼각형 글리프가 왼쪽으로 치우쳐 보여 시각적으로 가운데를 맞춘다. */
+  padding-left: 2px;
+}
+
+.preview-button:hover {
+  background: var(--border);
+  color: var(--text-body);
+}
+
+.preview-button--playing,
+.preview-button--playing:hover {
+  background: var(--primary);
+  color: #fff;
+  padding-left: 0;
+}
+
+.preview-button--large {
+  width: 44px;
+  height: 44px;
+  font-size: 13px;
+}
+
+/* ---------- 목록 보기 ---------- */
+
+.pin-list {
+  list-style: none;
+  margin: 0;
+  padding: 8px 12px calc(12px + env(safe-area-inset-bottom));
+  height: 100%;
+  overflow-y: auto;
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.pin-list--empty {
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.pin-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px;
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow 0.15s var(--ease);
+}
+
+.pin-row:hover {
+  box-shadow: var(--shadow);
+}
+
+.pin-row__main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0;
+  text-align: left;
+  background: none;
+}
+
+.pin-row__art {
+  width: 52px;
+  height: 52px;
+  border-radius: 12px;
+  object-fit: cover;
+  flex: none;
+  background: var(--border-light);
+}
+
+.pin-row__text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.pin-row__title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.pin-row__title strong {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.pin-row__text em {
+  font-size: 13px;
+  font-weight: 500;
+  font-style: normal;
+  color: var(--text-dim);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pin-row__common {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pin-row__distance {
+  flex: none;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-dim);
+}
+
+.pin-row__profile {
+  flex: none;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  background: var(--border-light);
+  color: var(--text-sub);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.pin-row__profile:hover {
+  background: var(--border);
+  color: var(--text-body);
+}
+
+/* ---------- 마커 상세 시트 ---------- */
+
+.pin-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.pin-head__meta {
+  margin: 4px 0 0;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-dim);
+}
+
+.pin-track {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px;
+  border-radius: var(--radius-lg);
+  background: var(--surface-sub);
+}
+
+.pin-track__art {
+  width: 64px;
+  height: 64px;
+  border-radius: 12px;
+  object-fit: cover;
+  flex: none;
+}
+
+.pin-track__text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.pin-track__text strong {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pin-track__text em {
+  font-size: 14px;
+  font-weight: 500;
+  font-style: normal;
+  color: var(--text-sub);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pin-track__album {
+  font-size: 12px;
+  color: var(--text-dim);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pin-note {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-dim);
+  text-align: center;
+  line-height: 1.6;
+}
+
+/* ---------- 취향 일치도 · 배지 ---------- */
+
+.match-badge {
+  flex: none;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: var(--primary-tint);
+  color: var(--primary-dark);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.match-badge--large {
+  padding: 6px 12px;
+  font-size: 15px;
+}
+
+.unread-badge {
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: var(--danger);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.pending-badge {
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: var(--border-light);
+  color: var(--text-dim);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.chat-link .unread-badge {
+  margin-left: 2px;
+}
+
+/* ---------- 칩 · 가수 카드 ---------- */
+
+.chip-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chip-grid--selected {
+  padding-bottom: 4px;
+}
+
+.chip {
+  padding: 10px 14px;
+  border-radius: 999px;
+  background: var(--border-light);
+  color: var(--text-sub);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.chip:hover {
+  background: var(--border);
+}
+
+.chip--on,
+.chip--on:hover {
+  background: var(--primary);
+  color: #fff;
+}
+
+/* 고를 수 없는 표시용 칩. 눌리지 않는다는 것이 보이도록 연하게 둔다. */
+.chip--common {
+  background: var(--primary-tint);
+  color: var(--primary-dark);
+  cursor: default;
+}
+
+.artist-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(84px, 1fr));
+  gap: 12px 8px;
+}
+
+.artist-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 4px;
+  background: none;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-sub);
+  text-align: center;
+  word-break: keep-all;
+}
+
+.artist-card img,
+.artist-card__fallback {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: var(--border-light);
+  /* 선택 표시가 링으로 들어올 자리를 미리 비워 둔다. 눌러도 크기가 흔들리지 않는다. */
+  box-shadow: 0 0 0 0 var(--primary);
+  transition: box-shadow 0.15s var(--ease);
+}
+
+.artist-card__fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-dim);
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.artist-card--on {
+  color: var(--primary);
+}
+
+.artist-card--on img,
+.artist-card--on .artist-card__fallback {
+  box-shadow: 0 0 0 3px var(--primary);
+}
+
+.artist-card--static {
+  cursor: default;
+}
+
+.artist-card--static:active {
+  transform: none;
+}
+
+.artist-grid--compact {
+  grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
+}
+
+.artist-grid--compact img,
+.artist-grid--compact .artist-card__fallback {
+  width: 52px;
+  height: 52px;
+  font-size: 18px;
+}
+
+/* ---------- 온보딩 ---------- */
+
+.onboarding {
+  overflow-y: auto;
+  padding: 0 20px calc(100px + env(safe-area-inset-bottom));
+  background: var(--surface);
+  gap: 32px;
+}
+
+.onboarding__head {
+  padding: 32px 0 0;
+}
+
+.onboarding__head h1 {
+  margin: 0;
+  font-size: 26px;
+  font-weight: 800;
+  line-height: 1.35;
+  letter-spacing: -1px;
+  word-break: keep-all;
+}
+
+.onboarding__head p {
+  margin: 12px 0 0;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text-sub);
+  line-height: 1.6;
+  word-break: keep-all;
+}
+
+.onboarding__section {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.onboarding__section h2 {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+/* 몇 개를 더 골라야 하는지. 제목 옆에서 조용히 세어 준다. */
+.counter {
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: var(--primary-tint);
+  color: var(--primary-dark);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+}
+
+/*
+ * 고를 것이 많아 화면이 길어진다. 시작 버튼을 아래에 고정해
+ * 스크롤 위치와 상관없이 남은 개수와 다음 단계가 함께 보이게 한다.
+ */
+.onboarding__footer {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 100;
+  width: 100%;
+  max-width: var(--app-width);
+  margin: 0 auto;
+  padding: 12px 20px calc(20px + env(safe-area-inset-bottom));
+  background: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0),
+    var(--surface) 24px
+  );
+}
+
+.onboarding__footer .primary {
+  width: 100%;
+  min-height: 56px;
+}
+
+/* ---------- 프로필 ---------- */
+
+.profile-body,
+.chat-list-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px 16px calc(24px + env(safe-area-inset-bottom));
+}
+
+.profile-section,
+.chat-section {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 20px 16px;
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+}
+
+.profile-section h2,
+.chat-section h2 {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.profile-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin-left: auto;
+}
+
+/* 공통 취향 한 줄 요약. 이 서비스가 말하려는 문장이라 크게 둔다. */
+.common-line {
+  margin: 0;
+  padding: 14px 16px;
+  border-radius: var(--radius);
+  background: var(--primary-tint);
+  color: var(--primary-dark);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.6;
+  word-break: keep-all;
+}
+
+.common-line strong {
+  font-weight: 800;
+}
+
+.restricted-note {
+  margin: 0;
+  padding: 16px;
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text-sub);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.6;
+  word-break: keep-all;
+}
+
+/* ---------- 대화 ---------- */
+
+.nickname-search {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+}
+
+.nickname-search .primary {
+  padding: 0 22px;
+}
+
+.request-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border-radius: var(--radius);
+  background: var(--surface-sub);
+}
+
+.request-row__text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.request-row__text em {
+  font-size: 13px;
+  font-weight: 500;
+  font-style: normal;
+  color: var(--text-dim);
+}
+
+.request-row__actions {
+  display: flex;
+  gap: 6px;
+}
+
+/* 목록 안에 들어가는 버튼은 화면 전체를 차지하는 주 버튼보다 작아야 한다. */
+.request-row__actions button,
+.block-row button {
+  min-height: 40px;
+  padding: 0 14px;
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+}
+
+.room-list {
+  list-style: none;
+  margin: 0 -8px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.room-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 14px 8px;
+  border-radius: 12px;
+  text-align: left;
+  background: none;
+}
+
+.room-row:hover {
+  background: var(--surface-sub);
+}
+
+.room-row__text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.room-row__title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.room-row__text em {
+  font-size: 13px;
+  font-weight: 500;
+  font-style: normal;
+  color: var(--text-dim);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.room-row__meta {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+
+.room-row__time {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-dim);
+}
+
+/* ---------- 대화방 ---------- */
+
+.chat-banner {
+  flex: none;
+  margin: 12px 16px 0;
+  padding: 14px 16px;
+  border-radius: var(--radius);
+  background: var(--primary-tint);
+}
+
+.chat-banner p {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--primary-dark);
+  line-height: 1.6;
+  word-break: keep-all;
+}
+
+.chat-banner strong {
+  font-weight: 800;
+}
+
+.chat-banner__now {
+  margin-top: 6px !important;
+  color: var(--text-sub) !important;
+  font-weight: 500 !important;
+}
+
+.message-list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px;
+}
+
+.message-list .hint {
+  margin: auto 0;
+}
+
+.bubble {
+  max-width: 76%;
+  align-self: flex-start;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 14px;
+  /* 말꼬리 쪽 모서리만 접어 누가 보낸 말인지 모양으로도 구분되게 한다. */
+  border-radius: 18px 18px 18px 4px;
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+}
+
+.bubble--mine {
+  align-self: flex-end;
+  border-radius: 18px 18px 4px 18px;
+  background: var(--primary);
+  box-shadow: none;
+}
+
+.bubble__text {
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  /* 메시지도 띄어쓰기에서만 끊는다. 끊을 곳이 없는 긴 주소는 말풍선 안에서 접는다. */
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+.bubble--mine .bubble__text {
+  color: #fff;
+}
+
+.bubble__time {
+  align-self: flex-end;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-dim);
+}
+
+.bubble--mine .bubble__time {
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.composer {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 16px calc(16px + env(safe-area-inset-bottom));
+  background: var(--surface);
+  border-top: 1px solid var(--border-light);
+}
+
+.composer__row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+}
+
+.composer__row button {
+  padding: 0 20px;
+}
+
+.composer__row:only-child button {
+  width: 100%;
+}
+
+/* ---------- 설정 ---------- */
+
+.toggle-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  cursor: pointer;
+}
+
+.toggle-row__text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.toggle-row__text strong {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.toggle-row__text em {
+  font-size: 13px;
+  font-weight: 500;
+  font-style: normal;
+  color: var(--text-dim);
+  line-height: 1.5;
+  word-break: keep-all;
+}
+
+/* 기본 체크박스는 이 크기의 화면에서 너무 작다. 스위치로 바꿔 그린다. */
+.toggle-row input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  position: relative;
+  flex: none;
+  width: 52px;
+  height: 32px;
+  margin: 0;
+  border-radius: 999px;
+  background: #d1d6db;
+  cursor: pointer;
+  transition: background 0.2s var(--ease);
+}
+
+.toggle-row input[type="checkbox"]::after {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.18);
+  transition: transform 0.2s var(--ease);
+}
+
+.toggle-row input[type="checkbox"]:checked {
+  background: var(--primary);
+}
+
+.toggle-row input[type="checkbox"]:checked::after {
+  transform: translateX(20px);
+}
+
+.checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-body);
+  cursor: pointer;
+}
+
+.checkbox-row input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  position: relative;
+  flex: none;
+  width: 22px;
+  height: 22px;
+  margin: 0;
+  border-radius: 7px;
+  background: var(--border);
+  cursor: pointer;
+  transition: background 0.15s var(--ease);
+}
+
+.checkbox-row input[type="checkbox"]:checked {
+  background: var(--primary);
+}
+
+/* 체크 표시는 두 변만 남긴 사각형을 기울여 만든다. 아이콘 파일이 필요 없다. */
+.checkbox-row input[type="checkbox"]:checked::after {
+  content: "";
+  position: absolute;
+  top: 4px;
+  left: 8px;
+  width: 5px;
+  height: 10px;
+  border: solid #fff;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+.block-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 8px;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+/* ---------- 움직임 줄이기 ---------- */
+
+/* 애니메이션이 어지러운 사용자를 위해 전부 끈다. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  button:active:not(:disabled) {
+    transform: none;
+  }
+}
+
+/* ---------- 취향 필터 시트 ---------- */
+
+.filter-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.filter-section h3 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-sub);
+}
+
+/*
+ * 카드 안의 안내문은 설명이지 빈 화면 문구가 아니다. 제목·본문과 같은
+ * 왼쪽 선에 맞춰야 읽는 흐름이 끊기지 않는다.
+ */
+.chat-section .hint,
+.profile-section .hint {
+  text-align: left;
+}
+
+/*
+ * 회색 바닥에 바로 놓인 보조 버튼은 배경과 같은 색이라 버튼으로 안 보인다.
+ * 카드 밖에 있을 때만 흰 바탕으로 띄운다.
+ */
+.profile-body > .secondary,
+.chat-list-body > .secondary {
+  background: var(--surface);
+}
+
+.profile-body > .secondary:hover:not(:disabled),
+.chat-list-body > .secondary:hover:not(:disabled) {
+  background: var(--border-light);
+}
+
+/* ---------- 로고 ---------- */
+
+.logo-mark {
+  display: block;
+  flex: none;
+}
+
+.map-header__brand {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+/* 로그인·가입 화면에서는 이름 위에 마크만 올린다. */
+.card .logo-mark {
+  margin-bottom: 6px;
+}
+
+/* ---------- 지도 확대 · 축소 ---------- */
+
+/*
+ * 지도 오른쪽 아래. 왼쪽 아래에는 카카오 축척바와 로고가 있어 겹치면 안 되고,
+ * 위쪽은 보기 전환·반경 칩이 이미 차지하고 있다.
+ */
+.zoom-control {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  z-index: 500;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 4px;
+  border-radius: var(--radius);
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(12px);
+  box-shadow: var(--shadow);
+}
+
+.zoom-control button {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  color: var(--text-body);
+  font-size: 19px;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.zoom-control button:hover:not(:disabled) {
+  background: var(--border-light);
+}
+
+/* 더 확대·축소할 수 없다는 것을 눌러 보기 전에 알린다. */
+.zoom-control button:disabled {
+  color: var(--text-disabled);
+}
+
+/* ---------- 이전 메시지 ---------- */
+
+.load-older {
+  align-self: center;
+  flex: none;
+  margin-bottom: 4px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text-sub);
+  font-size: 13px;
+  font-weight: 600;
+  box-shadow: var(--shadow-sm);
+}
+
+.load-older:hover:not(:disabled) {
+  color: var(--text-body);
+}
+
+.load-older:disabled {
+  color: var(--text-disabled);
+}
+
+/*
+ * 보관함·기록·차트·알림 화면의 보조 버튼.
+ *
+ * .secondary 의 회색은 흰 카드 위에 있을 때를 가정한 색이다. 이 화면들은 바탕이
+ * 같은 회색이라 버튼이 글자처럼 보인다. 카드 밖에 놓인 것만 흰 바탕으로 띄운다.
+ */
+.discovery-toolbar .secondary,
+.music-entries .secondary,
+.notification-list .secondary {
+  background: var(--surface);
+}
+
+.discovery-toolbar .secondary:hover:not(:disabled),
+.music-entries .secondary:hover:not(:disabled),
+.notification-list .secondary:hover:not(:disabled) {
+  background: var(--border-light);
+}
+
+/* ---------- 보관함 · 음악 기록 · 동네 차트 · 알림함 ---------- */
+
+.discovery-page {
+  max-width: var(--app-width);
+  margin: 0 auto;
+  min-height: 100dvh;
+  background: var(--bg);
+  color: var(--text);
+}
+
+.discovery-page h1 {
+  font-size: 18px;
+  margin: 0;
+}
+
+.discovery-body {
+  max-width: 780px;
+  margin: auto;
+  padding: 24px 16px 64px;
+}
+
+.discovery-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin: 18px 0;
+}
+
+.discovery-toolbar label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.discovery-toolbar input,
+.discovery-toolbar select,
+.sort-picker select {
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 14px;
+}
+
+/* 지도 위에 떠 있는 정렬 선택기. 지도가 클릭을 가져가지 않도록 따로 살린다. */
+.sort-picker {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--surface);
+  padding: 6px 10px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 600;
+  box-shadow: var(--shadow);
+  pointer-events: auto;
+}
+
+.discovery-empty {
+  margin: 32px 0;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-dim);
+  line-height: 1.6;
+}
+
+/* ---------- 곡 카드 ---------- */
+
+.music-entries,
+.notification-list {
+  padding: 0;
+  margin: 18px 0;
+  list-style: none;
+  display: grid;
+  gap: 12px;
+}
+
+.music-entries > li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.music-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px;
+  background: var(--surface);
+  border-radius: 16px;
+  box-shadow: var(--shadow-sm);
+  flex-wrap: wrap;
+  /* 이보다 좁아지면 옆 버튼이 카드 아래로 내려간다. */
+  flex: 1 1 240px;
+  min-width: 0;
+  color: var(--text);
+}
+
+.music-card > img,
+.music-card__placeholder {
+  width: 64px;
+  height: 64px;
+  border-radius: 10px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.music-card__placeholder {
+  display: grid;
+  place-items: center;
+  background: var(--primary-tint);
+  color: var(--primary);
+  font-size: 24px;
+}
+
+.music-card__body {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+  flex: 1;
+  overflow-wrap: anywhere;
+}
+
+.music-card__body strong {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.music-card__body > span,
+.music-card small {
+  font-size: 12px;
+  color: var(--text-sub);
+}
+
+.music-card__actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  /* 한 줄을 통째로 차지해 본문 아래로 내려간다. */
+  flex-basis: 100%;
+}
+
+/* 대화 말풍선 안에서는 카드가 이미 흰 바탕 위에 있으므로 그림자를 뺀다. */
+.bubble .music-card {
+  box-shadow: none;
+  border: 1px solid var(--border-light);
+}
+
+/* ---------- 동네 차트 순위 ---------- */
+
+.chart-rank {
+  flex: none;
+  width: 28px;
+  text-align: center;
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--primary);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- 이달에 자주 공유한 가수 ---------- */
+
+.artist-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 24px 0;
+}
+
+.artist-summary h2 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-sub);
+}
+
+/* ---------- 곡 저장 버튼 ---------- */
+
+.save-track {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+
+.save-track .secondary {
+  min-height: 36px;
+  padding: 0 12px;
+  border-radius: 999px;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+/* 저장된 상태는 눌러서 해제할 수 있다는 뜻이라 강조색을 옅게 깐다. */
+.save-track .secondary[aria-pressed="true"] {
+  background: var(--primary-tint);
+  color: var(--primary-dark);
+}
+
+.save-track .error {
+  padding: 0;
+  background: none;
+  font-size: 12px;
+}
+
+/* ---------- 화면 이동 막대 ---------- */
+
+.feature-nav {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 12px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border-light);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.feature-nav::-webkit-scrollbar {
+  display: none;
+}
+
+.feature-nav a {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex: none;
+  padding: 8px 12px;
+  border-radius: 999px;
+  color: var(--text-dim);
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.feature-nav a:hover {
+  background: var(--border-light);
+  color: var(--text-body);
+}
+
+.feature-nav a.active {
+  background: var(--primary-tint);
+  color: var(--primary-dark);
+}
+
+/* ---------- 한국어 줄바꿈 ---------- */
+
+/*
+ * 기본값은 글자 단위로 끊어서 "다릅니다" 가 "다릅 / 니다" 로 쪼개진다.
+ * 폭이 좁은 휴대폰에서 특히 자주 생긴다. keep-all 은 띄어쓰기에서만 끊게 한다.
+ *
+ * 다만 keep-all 만 두면 칸보다 긴 한 덩어리(주소나 영어 단어)가 밖으로
+ * 삐져나간다. break-word 로 그때만 강제로 끊어 준다.
+ */
+body {
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
+
+/*
+ * 칩은 한 덩어리로 읽히는 짧은 말이라 중간에서 끊기면 안 된다.
+ * ("아이유 · 1회" 가 두 줄로 갈라지면 두 개처럼 보인다.)
+ * 칸보다 길면 끊는 대신 말줄임표로 줄인다.
+ */
+.chip,
+.radius-chip,
+.match-badge,
+.pending-badge,
+.counter {
+  white-space: nowrap;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 날짜·시각은 중간에서 끊기면 읽기 어렵다. */
+.music-card small,
+.room-row__time,
+.pin-head__meta {
+  white-space: nowrap;
+}

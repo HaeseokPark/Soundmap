@@ -1,0 +1,17 @@
+// In-memory server for acceptance checks; does not connect to project MySQL.
+allprojects {
+    afterEvaluate {
+        tasks.register('smokeServer', JavaExec) {
+            classpath = sourceSets.test.runtimeClasspath
+            mainClass = 'com.soundmap.SoundmapApplication'
+            args '--server.port=18080',
+                '--spring.datasource.url=jdbc:h2:mem:smoke;MODE=MySQL;DB_CLOSE_DELAY=-1',
+                '--spring.datasource.driver-class-name=org.h2.Driver',
+                '--spring.datasource.username=sa', '--spring.datasource.password=',
+                '--spring.jpa.hibernate.ddl-auto=create-drop', '--soundmap.seed.enabled=false',
+                '--soundmap.cors.allowed-origins=http://localhost:15173',
+                '--logging.level.org.hibernate.SQL=warn', '--logging.level.org.hibernate.orm.jdbc.bind=warn',
+                '--PUSH_VAPID_PUBLIC_KEY=', '--PUSH_VAPID_PRIVATE_KEY='
+        }
+    }
+}
