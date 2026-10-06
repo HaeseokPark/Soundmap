@@ -1,6 +1,6 @@
 {
-  "name": "SoundMap",
-  "short_name": "SoundMap",
+  "name": "잔향",
+  "short_name": "잔향",
   "description": "같은 음악을 듣는 사람이 근처에 있습니다.",
   "lang": "ko",
   "start_url": "/",

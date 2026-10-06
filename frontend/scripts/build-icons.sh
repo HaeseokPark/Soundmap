@@ -43,8 +43,8 @@ cat > "$TMP/og.svg" <<SVG
   <rect width="1200" height="630" fill="$BG"/>
   <image xlink:href="$LOGO_URI" x="500" y="118" width="200" height="200"/>
   <text x="600" y="412" text-anchor="middle" fill="#ffffff"
-        font-family="Malgun Gothic, Segoe UI, sans-serif" font-size="76" font-weight="bold"
-        letter-spacing="-2">SoundMap</text>
+        font-family="Malgun Gothic, Segoe UI, sans-serif" font-size="96" font-weight="bold"
+        letter-spacing="2">잔향</text>
   <text x="600" y="474" text-anchor="middle" fill="#98a1ad"
         font-family="Malgun Gothic, Segoe UI, sans-serif" font-size="30">같은 음악을 듣는 사람이 근처에 있습니다.</text>
 </svg>

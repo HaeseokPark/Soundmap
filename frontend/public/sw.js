@@ -10,7 +10,7 @@ self.addEventListener("push", (event) => {
       ? data.url
       : "/notifications";
   event.waitUntil(
-    self.registration.showNotification(data.title || "SoundMap", {
+    self.registration.showNotification(data.title || "잔향", {
       body: data.body || "새 알림이 도착했습니다.",
       icon: "/icon-192.png",
       tag: data.tag || "soundmap",

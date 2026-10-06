@@ -36,7 +36,7 @@ export default function LoginPage() {
     <div className="screen-center">
       <form className="card" onSubmit={handleSubmit}>
         <Logo size={46} />
-        <h1 className="logo">SoundMap</h1>
+        <h1 className="logo">잔향</h1>
         <p className="subtitle">같은 음악을 듣는 사람이 근처에 있습니다.</p>
 
         <label className="field">

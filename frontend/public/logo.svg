@@ -2,7 +2,7 @@
   뷰박스는 그림에 딱 맞춰 잘라 두었다. 1024 정사각형 그대로 두면 위아래 여백이
   25% 를 먹어서, 16px 파비콘이나 헤더에서 마크가 실제보다 작게 보인다.
 -->
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="214.6 234 578 578" role="img" aria-label="SoundMap">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="214.6 234 578 578" role="img" aria-label="잔향">
   <defs>
     <linearGradient id="soundmap-mark" x1="512" y1="250" x2="512" y2="800" gradientUnits="userSpaceOnUse">
       <stop offset="0" stop-color="#22a9ff" />

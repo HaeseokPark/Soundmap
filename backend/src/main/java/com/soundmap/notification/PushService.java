@@ -61,7 +61,7 @@ public class PushService {
         try {
             Security.addProvider(new BouncyCastleProvider());
             var sender=new nl.martijndwars.webpush.PushService(publicKey,privateKey,subject);
-            byte[] payload=json.writeValueAsBytes(Map.of("title","SoundMap","body",event.title(),"url","/chats/"+event.room(),"tag","room-"+event.room()));
+            byte[] payload=json.writeValueAsBytes(Map.of("title","잔향","body",event.title(),"url","/chats/"+event.room(),"tag","room-"+event.room()));
             var config=RequestConfig.custom().setConnectTimeout(5000).setSocketTimeout(5000).setConnectionRequestTimeout(5000).build();
             try(var client=HttpClients.custom().disableRedirectHandling().setDefaultRequestConfig(config).build()) {
                 for(var sub:subscriptions.findByUserId(event.user())) {

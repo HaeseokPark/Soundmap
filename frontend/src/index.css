@@ -1,5 +1,5 @@
 /*
- * SoundMap 디자인 시스템.
+ * 잔향 디자인 시스템.
  *
  * 밝은 배경 · 파란 강조색 · 큰 라운드 · 굵은 제목. 화면 대부분이 목록과 시트라서
  * 테두리로 칸을 나누는 대신 흰 카드를 회색 바닥 위에 얹어 구분한다.
@@ -349,7 +349,8 @@ textarea.search-input {
   margin: 0;
   font-size: 28px;
   font-weight: 800;
-  letter-spacing: -1px;
+  /* 한글 워드마크는 글자폭이 고르다. 라틴 기준 음수 자간을 주면 붙어 보인다. */
+  letter-spacing: 0;
 }
 
 .subtitle {
@@ -385,7 +386,7 @@ textarea.search-input {
 .map-header__logo {
   font-size: 18px;
   font-weight: 800;
-  letter-spacing: -0.7px;
+  letter-spacing: 0;
   color: var(--text);
   white-space: nowrap;
 }

@@ -171,7 +171,7 @@ export default function MapPage() {
       <header className="map-header">
         <span className="map-header__brand">
           <Logo size={24} />
-          <span className="map-header__logo">SoundMap</span>
+          <span className="map-header__logo">잔향</span>
         </span>
         <span className="map-header__count">
           {hasFilter
