@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>잔향 데모 스테이지</title>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@700&family=IBM+Plex+Sans+KR:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{width:1920px;height:1080px;overflow:hidden;background:#080c16}
+  body{
+    font-family:"IBM Plex Sans KR",sans-serif; color:#fff;
+    word-break:keep-all; overflow-wrap:break-word;
+    -webkit-font-smoothing:antialiased;
+  }
+  #bg{position:absolute;inset:0;
+    background:
+      radial-gradient(1100px 760px at 1540px 420px, rgba(49,130,246,.26), transparent 62%),
+      radial-gradient(860px 640px at 180px 920px, rgba(34,169,255,.12), transparent 60%),
+      linear-gradient(160deg,#0a1020 0%,#0b1324 55%,#080c16 100%);
+  }
+  #grain{position:absolute;inset:0;opacity:.5;
+    background-image:linear-gradient(rgba(255,255,255,.022) 1px,transparent 1px),
+                     linear-gradient(90deg,rgba(255,255,255,.022) 1px,transparent 1px);
+    background-size:64px 64px;}
+
+  /* ---------- 브랜드 ---------- */
+  #brand{position:absolute;left:104px;top:72px;display:flex;align-items:center;gap:18px}
+  #brand svg{width:54px;height:54px}
+  #brand .wm{font-family:"Gowun Batang",serif;font-size:40px;font-weight:700;letter-spacing:-.01em}
+  #brand .rom{font-family:"IBM Plex Mono",monospace;font-size:13px;letter-spacing:.42em;
+    color:rgba(255,255,255,.34);margin-top:7px}
+
+  /* ---------- 자막 영역 ---------- */
+  #panel{position:absolute;left:104px;top:296px;width:1060px}
+  #chapter{display:flex;align-items:center;gap:16px;margin-bottom:26px;
+    opacity:0;transition:opacity .22s ease}
+  #chapter .n{font-family:"IBM Plex Mono",monospace;font-size:18px;font-weight:500;
+    letter-spacing:.16em;color:#5fa8ff}
+  #chapter .bar{width:46px;height:2px;background:#3182f6;border-radius:2px}
+  #chapter .lb{font-size:21px;font-weight:600;letter-spacing:.02em;color:rgba(255,255,255,.66)}
+  #cap{font-size:43px;font-weight:500;line-height:1.54;letter-spacing:-.015em;
+    opacity:0;transition:opacity .22s ease, transform .22s ease;transform:translateY(8px)}
+  #cap.on{opacity:1;transform:none}
+  #chapter.on{opacity:1}
+  #cap b{font-weight:700;color:#7cbcff}
+  #cap .dim{color:rgba(255,255,255,.5);font-weight:400;font-size:36px}
+  #cap .gap{display:block;height:26px}
+
+  #url{position:absolute;left:104px;bottom:76px;font-size:21px;font-weight:400;
+    letter-spacing:0;color:rgba(255,255,255,.42)}
+  #url b{font-family:"IBM Plex Mono",monospace;letter-spacing:.05em;color:#7cbcff;font-weight:500}
+
+  /* ---------- 폰 ---------- */
+  #phone{position:absolute;left:1322px;top:68px;width:459px;height:944px;
+    border-radius:52px;background:linear-gradient(170deg,#2b3545,#141a26);
+    padding:15px;box-shadow:0 44px 100px rgba(0,0,0,.62), 0 0 0 1px rgba(255,255,255,.07);
+    transition:opacity .3s ease, transform .3s ease}
+  #screen{width:429px;height:914px;border-radius:40px;overflow:hidden;background:#fff;position:relative}
+  #screen iframe{width:390px;height:831px;border:0;display:block;
+    transform:scale(1.1);transform-origin:top left}
+  #phone.off{opacity:0;transform:translateY(24px) scale(.97)}
+
+  /* 탭 표시 */
+  #tap{position:absolute;width:62px;height:62px;border-radius:50%;
+    border:3px solid rgba(49,130,246,.95);background:rgba(49,130,246,.22);
+    pointer-events:none;opacity:0;transform:translate(-50%,-50%) scale(1);z-index:30}
+
+  /* ---------- 타이틀 모드 ---------- */
+  #title{position:absolute;inset:0;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;gap:34px;
+    opacity:0;transition:opacity .3s ease;pointer-events:none}
+  #title.on{opacity:1}
+  #title svg{width:132px;height:132px}
+  #title .big{font-family:"Gowun Batang",serif;font-size:86px;font-weight:700;letter-spacing:-.02em}
+  #title .sub{font-size:38px;font-weight:400;line-height:1.56;text-align:center;
+    color:rgba(255,255,255,.8);max-width:1200px}
+  #title .u{font-family:"IBM Plex Mono",monospace;font-size:30px;letter-spacing:.07em;color:#7cbcff;margin-top:12px}
+  body.titlemode #panel,body.titlemode #brand,body.titlemode #url{opacity:0;transition:opacity .3s ease}
+</style>
+</head>
+<body>
+<div id="bg"></div><div id="grain"></div>
+
+<div id="brand">
+  <svg viewBox="214.6 234 578 578" xmlns="http://www.w3.org/2000/svg">
+    <defs><linearGradient id="g1" x1="512" y1="250" x2="512" y2="800" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#5fc0ff"/><stop offset="1" stop-color="#3182f6"/></linearGradient></defs>
+    <g fill="none" stroke="url(#g1)" stroke-linejoin="round">
+      <path stroke-width="48" stroke-linecap="round" d="M403.7 560.8 L373.2 501.2 A156 156 0 1 1 650.8 501.2 L512 772"/>
+      <path stroke-width="32" stroke-linecap="butt" d="M470 336 L470 648 L512 776"/></g>
+    <g fill="url(#g1)"><path d="M470 332 C578 392, 612 486, 552 616 C582 494, 532 428, 470 406 Z"/>
+      <ellipse cx="396" cy="672" rx="82" ry="68" transform="rotate(-18 396 672)"/></g>
+  </svg>
+  <div><div class="wm">잔향</div><div class="rom">JANHYANG</div></div>
+</div>
+
+<div id="panel">
+  <div id="chapter"><span class="n"></span><span class="bar"></span><span class="lb"></span></div>
+  <div id="cap"></div>
+</div>
+
+<div id="url">위치 기반 음악 소셜 플랫폼 &nbsp;·&nbsp; <b>soundmap.duckdns.org</b></div>
+
+<div id="phone"><div id="screen"><iframe id="app" src="/login"></iframe></div></div>
+<div id="tap"></div>
+
+<div id="title">
+  <svg viewBox="214.6 234 578 578" xmlns="http://www.w3.org/2000/svg">
+    <defs><linearGradient id="g2" x1="512" y1="250" x2="512" y2="800" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#5fc0ff"/><stop offset="1" stop-color="#3182f6"/></linearGradient></defs>
+    <g fill="none" stroke="url(#g2)" stroke-linejoin="round">
+      <path stroke-width="48" stroke-linecap="round" d="M403.7 560.8 L373.2 501.2 A156 156 0 1 1 650.8 501.2 L512 772"/>
+      <path stroke-width="32" stroke-linecap="butt" d="M470 336 L470 648 L512 776"/></g>
+    <g fill="url(#g2)"><path d="M470 332 C578 392, 612 486, 552 616 C582 494, 532 428, 470 406 Z"/>
+      <ellipse cx="396" cy="672" rx="82" ry="68" transform="rotate(-18 396 672)"/></g>
+  </svg>
+  <div class="big"></div><div class="sub"></div><div class="u"></div>
+</div>
+
+<script>
+const $ = s => document.querySelector(s);
+const app = $('#app');
+
+window.__stage = {
+  cap(n, label, html) {
+    const ch = $('#chapter'), cap = $('#cap');
+    if (n === null) { ch.classList.remove('on'); cap.classList.remove('on'); return; }
+    ch.querySelector('.n').textContent = n;
+    ch.querySelector('.lb').textContent = label;
+    cap.innerHTML = html;
+    ch.classList.add('on'); cap.classList.add('on');
+  },
+  capOff() { $('#cap').classList.remove('on'); },
+  capOn()  { $('#cap').classList.add('on'); },
+
+  title(big, sub, u) {
+    document.body.classList.add('titlemode');
+    $('#title .big').textContent = big || '';
+    $('#title .sub').innerHTML = sub || '';
+    $('#title .u').textContent = u || '';
+    $('#title').classList.add('on');
+    $('#phone').classList.add('off');
+  },
+  demo() {
+    document.body.classList.remove('titlemode');
+    $('#title').classList.remove('on');
+    $('#phone').classList.remove('off');
+  },
+
+  doc() { return app.contentDocument; },
+  win() { return app.contentWindow; },
+  go(path) {
+    return new Promise(res => {
+      app.addEventListener('load', () => setTimeout(res, 60), { once: true });
+      app.contentWindow.location.href = path;
+    });
+  },
+  token(t) { try { app.contentWindow.localStorage.setItem('soundmap.accessToken', t); } catch (e) {} },
+
+  tapAt(el, phase) {
+    const t = $('#tap');
+    if (!el) { t.style.opacity = 0; return false; }
+    const r = el.getBoundingClientRect();
+    const ph = $('#phone').getBoundingClientRect();
+    const S = 1.1, pad = 15;
+    t.style.left = (ph.left + pad + (r.left + r.width / 2) * S) + 'px';
+    t.style.top = (ph.top + pad + (r.top + r.height / 2) * S) + 'px';
+    t.style.opacity = phase <= 0 ? 0 : (1 - phase) * 0.95;
+    t.style.transform = 'translate(-50%,-50%) scale(' + (0.45 + phase * 0.95) + ')';
+    return true;
+  },
+  tapOff() { $('#tap').style.opacity = 0; },
+
+  byText(sel, text) {
+    return [...this.doc().querySelectorAll(sel)]
+      .find(e => (e.innerText || '').replace(/\s+/g, ' ').trim().includes(text)) || null;
+  },
+  setInput(el, value) {
+    const w = this.win();
+    const proto = el.tagName === 'TEXTAREA' ? w.HTMLTextAreaElement.prototype : w.HTMLInputElement.prototype;
+    Object.getOwnPropertyDescriptor(proto, 'value').set.call(el, value);
+    el.dispatchEvent(new w.Event('input', { bubbles: true }));
+  },
+  setSelect(el, value) {
+    const w = this.win();
+    Object.getOwnPropertyDescriptor(w.HTMLSelectElement.prototype, 'value').set.call(el, value);
+    el.dispatchEvent(new w.Event('change', { bubbles: true }));
+  },
+};
+</script>
+</body>
+</html>
