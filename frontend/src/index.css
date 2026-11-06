@@ -2133,3 +2133,71 @@ body {
 .pin-head__meta {
   white-space: nowrap;
 }
+
+/* ---------- 알림 한 줄 ---------- */
+
+/*
+ * 알림함의 각 줄은 스타일이 없어서, 제목과 시각이 공백 없이 붙어 나왔다
+ * ("새 메시지가 도착했습니다.2026. 11. 6."). 목록의 다른 카드와 같은 결로 맞춘다.
+ */
+.notification-item {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  padding: 14px 16px;
+  border: 0;
+  border-radius: 16px;
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+}
+
+.notification-item strong {
+  min-width: 0;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.notification-item small {
+  flex-shrink: 0;
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+/* 안 읽은 알림만 배경을 띄워 한눈에 갈라 보이게 한다. */
+.notification-item--unread {
+  background: var(--primary-tint);
+}
+
+.notification-item--unread strong {
+  color: var(--primary-dark);
+}
+
+/* ---------- 목록 보기에서의 지도 조작부 ---------- */
+
+/*
+ * 지도 위에서는 조작부가 떠 있어야 지도를 가리지 않고 쓸 수 있다. 그런데 목록
+ * 보기에서도 그대로 떠 있어서 첫 두 줄을 덮어 버렸다. 목록일 때는 띄우지 않고
+ * 목록 위에 쌓는다.
+ */
+.map-body--list {
+  display: flex;
+  flex-direction: column;
+}
+
+.map-body--list .map-overlay {
+  position: static;
+  order: -1;
+  padding: 12px 12px 0;
+  pointer-events: auto;
+}
+
+.map-body--list .pin-list {
+  flex: 1;
+  min-height: 0;
+  height: auto;
+}

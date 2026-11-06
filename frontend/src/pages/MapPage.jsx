@@ -196,7 +196,7 @@ export default function MapPage() {
       <FeatureNav/>
       <TasteFilterBar filter={filter} onChange={setFilter} />
 
-      <div className="map-body">
+      <div className={view === "list" ? "map-body map-body--list" : "map-body"}>
         {view === "map" ? (
           <KakaoMap
             center={myPosition ?? FALLBACK_CENTER}
